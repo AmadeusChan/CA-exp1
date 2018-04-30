@@ -71,7 +71,7 @@ void CACHE_REPLACEMENT_STATE::InitReplacementState()
     // Contestants:  ADD INITIALIZATION FOR YOUR HARDWARE HERE
     LIRS_stack = new deque<LIRS_STACK_ENTRY> [numsets];
     LIRS_Q = new deque<LIRS_STACK_ENTRY> [numsets];
-    Lhirs = assoc / 10 + 1;
+    Lhirs = assoc / 3;
     wayCnt = new INT32[numsets];
     for (UINT32 i = 0; i< numsets; ++ i) {
 	    wayCnt[i] = 0;
@@ -238,6 +238,23 @@ ostream & CACHE_REPLACEMENT_STATE::PrintStats(ostream &out)
     out<<"=========================================================="<<endl;
 
     // CONTESTANTS:  Insert your statistics printing here
+    
+    /*
+    for (int i = 0; i < 1; ++ i) {
+	    out << "setIndex = " << i << endl;
+	    out << "stack: "<<endl;
+	    deque<LIRS_STACK_ENTRY> *stack = &LIRS_stack[i];
+	    deque<LIRS_STACK_ENTRY> *Q = &LIRS_Q[i];
+	    for (int j = 0 ; j < int(stack->size()); ++ j) {
+		    cout << j << ": resident=" << stack->at(j).resident << " status=" << stack->at(j).status << " tag=" << stack->at(j).tag << " wayID=" << stack->at(j).wayID << endl;
+	    }
+	    cout << endl;
+	    for (int j = 0 ; j < int(Q->size()); ++ j) {
+		    cout << j << ": resident=" << Q->at(j).resident << " status=" << Q->at(j).status << " tag=" << Q->at(j).tag << " wayID=" << Q->at(j).wayID << endl;
+	    }
+	    cout << endl;
+    }
+    */
 
     return out;
     
@@ -247,9 +264,9 @@ INT32 CACHE_REPLACEMENT_STATE::Get_LIRS_Victim(UINT32 setIndex, Addr_t paddr) {
 	INT32 way;
 	deque<LIRS_STACK_ENTRY> *stack = &LIRS_stack[setIndex];
 	deque<LIRS_STACK_ENTRY> *Q = &LIRS_Q[setIndex];     
-	way = Q->at(Q->size() - 1).wayID;
+	way=Q->at(Q->size() - 1).wayID;
 	for (deque<LIRS_STACK_ENTRY>::iterator i = stack->begin(); i != stack->end(); ++ i) {
-		if (i->wayID == Q->at(Q->size() - 1).wayID && i->tag == Q->at(Q->size() - 1).tag) {
+		if (i->tag == Q->at(Q->size() - 1).tag) {
 			i->resident = false;
 			break;
 		}
@@ -329,6 +346,8 @@ void CACHE_REPLACEMENT_STATE::UpdateLIRS(UINT32 setIndex, INT32 updateWayID, con
 					break;
 				}
 			}
+			//printf("tag: %llu\n", currLine->tag);
+			//assert(pos == -1);
 			if (pos != -1) {
 				LIRS_STACK_ENTRY entry = stack->at(pos);
 				stack->erase(stack->begin() + pos);
@@ -362,11 +381,6 @@ void CACHE_REPLACEMENT_STATE::LIRS_Stack_Pruning(UINT32 setIndex) {
 		if (stack->at(size - 1).status == LIR_STATUS) {
 			break;
 		}
-		/*
-		if (stack->at(size - 1).resident) {
-			Q->pop_back();
-		}
-		*/
 		stack->pop_back();
 	}
 }

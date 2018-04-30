@@ -1,6 +1,13 @@
 ../bin/CMPsim.usetrace.64 \
 -threads 1 \
--t ../../traces/403.gcc.out.trace.gz \
+-t ../../traces/401.bzip2.out.trace.gz \
 -o ls.stats \
--cache UL3:1024:64:16 \
+-cache UL3:512:64:8 \
 -LLCrepl 0
+
+../bin/CMPsim.usetrace.64 \
+-threads 1 \
+-t ../../traces/401.bzip2.out.trace.gz \
+-o ls.stats \
+-cache UL3:512:64:8 \
+-LLCrepl 2

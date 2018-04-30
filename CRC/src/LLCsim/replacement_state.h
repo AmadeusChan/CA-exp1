@@ -18,6 +18,7 @@
 
 #include <cstdlib>
 #include <cassert>
+#include <cstdio>
 #include "utils.h"
 #include "crc_cache_defs.h"
 
@@ -50,7 +51,7 @@ typedef struct
 typedef struct {
 	UINT32 status;
 	bool resident;
-	UINT32 tag;
+	Addr_t tag;
 	UINT32 wayID;
 } LIRS_STACK_ENTRY;
 
