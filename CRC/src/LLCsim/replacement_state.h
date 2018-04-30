@@ -64,8 +64,11 @@ class CACHE_REPLACEMENT_STATE
     UINT32 replPolicy;
     
     LINE_REPLACEMENT_STATE   **repl;
+
     deque<LIRS_STACK_ENTRY> *LIRS_stack;
     deque<LIRS_STACK_ENTRY> *LIRS_Q;
+    UINT32 Lhirs;
+    INT32 *wayCnt;
 
 
     COUNTER mytimer;  // tracks # of references to the cache
@@ -98,7 +101,7 @@ class CACHE_REPLACEMENT_STATE
 
     // LIRS
     INT32 Get_LIRS_Victim(UINT32 setIndex, Addr_t paddr);
-    void UpdateLIRS(UINT32 setIndex, INT32 updateWayID, bool cahceHit);
+    void UpdateLIRS(UINT32 setIndex, INT32 updateWayID, const LINE_STATE *currLine, bool cahceHit);
     void LIRS_Stack_Pruning(UINT32 setIndex);
 };
 

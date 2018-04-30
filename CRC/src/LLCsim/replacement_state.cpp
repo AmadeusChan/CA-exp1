@@ -71,6 +71,11 @@ void CACHE_REPLACEMENT_STATE::InitReplacementState()
     // Contestants:  ADD INITIALIZATION FOR YOUR HARDWARE HERE
     LIRS_stack = new deque<LIRS_STACK_ENTRY> [numsets];
     LIRS_Q = new deque<LIRS_STACK_ENTRY> [numsets];
+    Lhirs = assoc / 10 + 1;
+    wayCnt = new INT32[numsets];
+    for (UINT32 i = 0; i< numsets; ++ i) {
+	    wayCnt[i] = 0;
+    }
 
 }
 
@@ -141,7 +146,7 @@ void CACHE_REPLACEMENT_STATE::UpdateReplacementState(
         // Contestants:  ADD YOUR UPDATE REPLACEMENT STATE FUNCTION HERE
         // Feel free to use any of the input parameters to make
         // updates to your replacement policy
-	UpdateLIRS(setIndex, updateWayID, cacheHit);
+	UpdateLIRS(setIndex, updateWayID, currLine, cacheHit);
     }
     
     
@@ -239,10 +244,129 @@ ostream & CACHE_REPLACEMENT_STATE::PrintStats(ostream &out)
 }
 
 INT32 CACHE_REPLACEMENT_STATE::Get_LIRS_Victim(UINT32 setIndex, Addr_t paddr) {
+	INT32 way;
+	deque<LIRS_STACK_ENTRY> *stack = &LIRS_stack[setIndex];
+	deque<LIRS_STACK_ENTRY> *Q = &LIRS_Q[setIndex];     
+	way = Q->at(Q->size() - 1).wayID;
+	for (deque<LIRS_STACK_ENTRY>::iterator i = stack->begin(); i != stack->end(); ++ i) {
+		if (i->wayID == Q->at(Q->size() - 1).wayID && i->tag == Q->at(Q->size() - 1).tag) {
+			i->resident = false;
+			break;
+		}
+	}
+	Q->pop_back();
+	return way;
 }
 
-void CACHE_REPLACEMENT_STATE::UpdateLIRS(UINT32 setIndex, INT32 updateWayID, bool cahceHit) {
+void CACHE_REPLACEMENT_STATE::UpdateLIRS(UINT32 setIndex, INT32 updateWayID, const LINE_STATE *currLine, bool cahceHit) {
+	deque<LIRS_STACK_ENTRY> *stack = &LIRS_stack[setIndex];
+	deque<LIRS_STACK_ENTRY> *Q = &LIRS_Q[setIndex];
+	if (cahceHit) {
+		INT32 pos = -1;
+		for (INT32 i = 0, j = stack->size(); i < j; ++ i) {
+			if (stack->at(i).tag == currLine->tag) {
+				pos = i;
+				break;
+			}
+		}
+		if (pos != -1) {
+			LIRS_STACK_ENTRY entry = stack->at(pos);
+			if (entry.status == LIR_STATUS) {
+				stack->erase(stack->begin() + pos);
+				stack->push_front(entry);
+				LIRS_Stack_Pruning(setIndex);
+			} else {
+				entry.status = LIR_STATUS;
+				for (deque<LIRS_STACK_ENTRY>::iterator i = Q->begin(); i != Q->end(); ++ i) {
+					if (i->tag == currLine->tag) {
+						Q->erase(i);
+						break;
+					}
+				}
+				stack->erase(stack->begin() + pos);
+				stack->push_front(entry);
+				stack->at(stack->size() - 1).status = HIR_STATUS;
+				Q->push_front(stack->at(stack->size() - 1));
+				LIRS_Stack_Pruning(setIndex);
+			}
+		} else {
+			for (deque<LIRS_STACK_ENTRY>::iterator i = Q->begin(); i != Q->end(); ++ i) {
+				if (i->tag == currLine->tag) {
+					Q->erase(i);
+					break;
+				}
+			}
+
+			LIRS_STACK_ENTRY entry;
+			entry.resident = true;
+			entry.status = HIR_STATUS;
+			entry.wayID = updateWayID;
+			entry.tag = currLine->tag;
+			stack->push_front(entry);
+			Q->push_front(entry);
+		}
+	} else {
+		if (wayCnt[setIndex] < INT32(assoc)) {
+			assert(updateWayID == wayCnt[setIndex]);
+			wayCnt[setIndex] += 1;
+			LIRS_STACK_ENTRY *entry = new LIRS_STACK_ENTRY();
+			if (updateWayID < (INT32)(assoc) - INT32(Lhirs)) {
+				entry->status = LIR_STATUS;
+			} else entry->status = HIR_STATUS;
+			entry->resident = true;
+			entry->tag = currLine->tag;
+			entry->wayID = updateWayID;
+			LIRS_stack[setIndex].push_front(*entry);
+			if (entry->status == HIR_STATUS) {
+				LIRS_Q[setIndex].push_front(*entry);
+			}
+			delete entry;
+		} else {
+			INT32 pos = -1;
+			for (INT32 i = 0, j = stack->size(); i < j; ++ i) {
+				if (stack->at(i).tag == currLine->tag) {
+					pos = i;
+					break;
+				}
+			}
+			if (pos != -1) {
+				LIRS_STACK_ENTRY entry = stack->at(pos);
+				stack->erase(stack->begin() + pos);
+				entry.resident = true;
+				entry.status = LIR_STATUS;
+				entry.wayID = updateWayID;
+				stack->push_front(entry);
+
+				stack->at(stack->size() - 1).status = HIR_STATUS;
+				Q->push_front(stack->at(stack->size() - 1));
+				LIRS_Stack_Pruning(setIndex);
+			} else {
+				LIRS_STACK_ENTRY entry;
+				entry.status = HIR_STATUS;
+				entry.resident = true;
+				entry.tag = currLine->tag;
+				entry.wayID = updateWayID;
+				stack->push_front(entry);
+				Q->push_front(entry);
+			}
+		}
+	}
 }
 
 void CACHE_REPLACEMENT_STATE::LIRS_Stack_Pruning(UINT32 setIndex) {
+	deque<LIRS_STACK_ENTRY> *stack = &LIRS_stack[setIndex];
+	//deque<LIRS_STACK_ENTRY> *Q = &LIRS_Q[setIndex];
+	while (1) {
+		UINT32 size = stack->size();
+		if (size == 0) break;
+		if (stack->at(size - 1).status == LIR_STATUS) {
+			break;
+		}
+		/*
+		if (stack->at(size - 1).resident) {
+			Q->pop_back();
+		}
+		*/
+		stack->pop_back();
+	}
 }
