@@ -77,6 +77,9 @@ void CACHE_REPLACEMENT_STATE::InitReplacementState()
 	    wayCnt[i] = 0;
     }
 
+    // FIFO
+    FIFO_stack = new deque<int> [numsets];
+
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -109,7 +112,8 @@ INT32 CACHE_REPLACEMENT_STATE::GetVictimInSet( UINT32 tid, UINT32 setIndex, cons
     else if( replPolicy == CRC_REPL_CONTESTANT )
     {
         // Contestants:  ADD YOUR VICTIM SELECTION FUNCTION HERE
-	return Get_LIRS_Victim(setIndex, paddr);
+	// return Get_LIRS_Victim(setIndex, paddr);
+	return Get_FIFO_Victim(setIndex);
     }
 
     // We should never get here
@@ -146,7 +150,8 @@ void CACHE_REPLACEMENT_STATE::UpdateReplacementState(
         // Contestants:  ADD YOUR UPDATE REPLACEMENT STATE FUNCTION HERE
         // Feel free to use any of the input parameters to make
         // updates to your replacement policy
-	UpdateLIRS(setIndex, updateWayID, currLine, cacheHit);
+	//UpdateLIRS(setIndex, updateWayID, currLine, cacheHit);
+	UpdateFIFO(setIndex, updateWayID, cacheHit);
     }
     
     
@@ -382,5 +387,23 @@ void CACHE_REPLACEMENT_STATE::LIRS_Stack_Pruning(UINT32 setIndex) {
 			break;
 		}
 		stack->pop_back();
+	}
+}
+
+INT32 CACHE_REPLACEMENT_STATE::Get_FIFO_Victim(UINT32 setIndex) {
+	return FIFO_stack[setIndex][0];
+}
+
+void CACHE_REPLACEMENT_STATE::UpdateFIFO(UINT32 setIndex, INT32 updateWayID, bool cacheHit) {
+	if (cacheHit) {
+		// do nothing
+	} else {
+		for (deque<int>::iterator i = FIFO_stack[setIndex].begin(); i != FIFO_stack[setIndex].end(); ++ i) {
+			if (*i == updateWayID) {
+				FIFO_stack[setIndex].erase(i);
+				break;
+			}
+		}
+		FIFO_stack[setIndex].push_back(updateWayID);
 	}
 }

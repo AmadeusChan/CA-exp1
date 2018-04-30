@@ -71,6 +71,8 @@ class CACHE_REPLACEMENT_STATE
     UINT32 Lhirs;
     INT32 *wayCnt;
 
+    deque<int> *FIFO_stack;
+
 
     COUNTER mytimer;  // tracks # of references to the cache
 
@@ -104,6 +106,10 @@ class CACHE_REPLACEMENT_STATE
     INT32 Get_LIRS_Victim(UINT32 setIndex, Addr_t paddr);
     void UpdateLIRS(UINT32 setIndex, INT32 updateWayID, const LINE_STATE *currLine, bool cahceHit);
     void LIRS_Stack_Pruning(UINT32 setIndex);
+
+    // FIFO 
+    INT32 Get_FIFO_Victim(UINT32 setIndex);
+    void   UpdateFIFO( UINT32 setIndex, INT32 updateWayID , bool cacheHit);
 };
 
 
