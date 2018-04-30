@@ -69,6 +69,8 @@ void CACHE_REPLACEMENT_STATE::InitReplacementState()
     }
 
     // Contestants:  ADD INITIALIZATION FOR YOUR HARDWARE HERE
+    LIRS_stack = new deque<LIRS_STACK_ENTRY> [numsets];
+    LIRS_Q = new deque<LIRS_STACK_ENTRY> [numsets];
 
 }
 
@@ -102,6 +104,7 @@ INT32 CACHE_REPLACEMENT_STATE::GetVictimInSet( UINT32 tid, UINT32 setIndex, cons
     else if( replPolicy == CRC_REPL_CONTESTANT )
     {
         // Contestants:  ADD YOUR VICTIM SELECTION FUNCTION HERE
+	return Get_LIRS_Victim(setIndex, paddr);
     }
 
     // We should never get here
@@ -138,6 +141,7 @@ void CACHE_REPLACEMENT_STATE::UpdateReplacementState(
         // Contestants:  ADD YOUR UPDATE REPLACEMENT STATE FUNCTION HERE
         // Feel free to use any of the input parameters to make
         // updates to your replacement policy
+	UpdateLIRS(setIndex, updateWayID, cacheHit);
     }
     
     
@@ -234,3 +238,11 @@ ostream & CACHE_REPLACEMENT_STATE::PrintStats(ostream &out)
     
 }
 
+INT32 CACHE_REPLACEMENT_STATE::Get_LIRS_Victim(UINT32 setIndex, Addr_t paddr) {
+}
+
+void CACHE_REPLACEMENT_STATE::UpdateLIRS(UINT32 setIndex, INT32 updateWayID, bool cahceHit) {
+}
+
+void CACHE_REPLACEMENT_STATE::LIRS_Stack_Pruning(UINT32 setIndex) {
+}

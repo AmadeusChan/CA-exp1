@@ -21,6 +21,14 @@
 #include "utils.h"
 #include "crc_cache_defs.h"
 
+#include <vector>
+#include <deque>
+
+#define LIR_STATUS 0
+#define HIR_STATUS 1
+
+using namespace std;
+
 // Replacement Policies Supported
 typedef enum 
 {
@@ -38,6 +46,13 @@ typedef struct
 
 } LINE_REPLACEMENT_STATE;
 
+// LIRS stack entry
+typedef struct {
+	UINT32 status;
+	bool resident;
+	UINT32 tag;
+	UINT32 wayID;
+} LIRS_STACK_ENTRY;
 
 // The implementation for the cache replacement policy
 class CACHE_REPLACEMENT_STATE
@@ -49,6 +64,9 @@ class CACHE_REPLACEMENT_STATE
     UINT32 replPolicy;
     
     LINE_REPLACEMENT_STATE   **repl;
+    deque<LIRS_STACK_ENTRY> *LIRS_stack;
+    deque<LIRS_STACK_ENTRY> *LIRS_Q;
+
 
     COUNTER mytimer;  // tracks # of references to the cache
 
@@ -77,6 +95,11 @@ class CACHE_REPLACEMENT_STATE
 
     INT32  Get_LRU_Victim( UINT32 setIndex );
     void   UpdateLRU( UINT32 setIndex, INT32 updateWayID );
+
+    // LIRS
+    INT32 Get_LIRS_Victim(UINT32 setIndex, Addr_t paddr);
+    void UpdateLIRS(UINT32 setIndex, INT32 updateWayID, bool cahceHit);
+    void LIRS_Stack_Pruning(UINT32 setIndex);
 };
 
 
