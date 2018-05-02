@@ -112,8 +112,8 @@ INT32 CACHE_REPLACEMENT_STATE::GetVictimInSet( UINT32 tid, UINT32 setIndex, cons
     else if( replPolicy == CRC_REPL_CONTESTANT )
     {
         // Contestants:  ADD YOUR VICTIM SELECTION FUNCTION HERE
-	// return Get_LIRS_Victim(setIndex, paddr);
-	return Get_FIFO_Victim(setIndex);
+	return Get_LIRS_Victim(setIndex, paddr);
+	//return Get_FIFO_Victim(setIndex);
     }
 
     // We should never get here
@@ -150,8 +150,8 @@ void CACHE_REPLACEMENT_STATE::UpdateReplacementState(
         // Contestants:  ADD YOUR UPDATE REPLACEMENT STATE FUNCTION HERE
         // Feel free to use any of the input parameters to make
         // updates to your replacement policy
-	//UpdateLIRS(setIndex, updateWayID, currLine, cacheHit);
-	UpdateFIFO(setIndex, updateWayID, cacheHit);
+	UpdateLIRS(setIndex, updateWayID, currLine, cacheHit);
+	//UpdateFIFO(setIndex, updateWayID, cacheHit);
     }
     
     

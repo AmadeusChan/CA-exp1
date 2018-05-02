@@ -4,23 +4,24 @@ import re
 import gzip
 import numpy as np
 
-results = glob.glob("./runs/2/*.stats.gz")
+results = glob.glob("./runs/LIRS/*.stats.gz")
 print results
 
-methods = ['0', '1', '2']
+methods = ['LRU', 'random', 'FIFO', 'LIRS']
 
 miss_rates = []
 names = []
 
 for i in range(len(results)):
-    name = results[i][9:-9]
+    name = results[i][12:-9]
     names.append(name)
     print name
 
     row = []
     for method in methods:
         miss_rate = None
-        #print "runs/" + method + "/" + name + ".stats.gz"
+        print "runs/" + method + "/" + name + ".stats.gz"
+
         with gzip.open("runs/" + method + "/" + name + ".stats.gz", "r") as f:
             flag = False
             while True:
@@ -40,6 +41,10 @@ for i in range(len(results)):
 
 miss_rates = np.asarray(miss_rates)
 print miss_rates
+print np.mean(miss_rates[:,0])
+print np.mean(miss_rates[:,1])
+print np.mean(miss_rates[:,2])
+print np.mean(miss_rates[:,3])
 
 cut = 5
 begin = 0
